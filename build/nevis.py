@@ -1238,12 +1238,39 @@ class Window:
 
     def __str__(self):
         return str(self.canvas)
+import sys
+
+WINDOWS = sys.platform == "win32"
+
+
+def getch() -> bytes: ...
+
+
+if WINDOWS:
+    from msvcrt import getch
+else:
+    import tty
+    import termios
+
+    def getch() -> bytes:
+        # Get the current terminal settings
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        try:
+            # Set terminal to raw mode
+            tty.setraw(sys.stdin.fileno())
+            ch = sys.stdin.read(1)  # Read a single character
+        finally:
+            # Restore the original terminal settings
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        return ch
 from xmlrpc.server import SimpleXMLRPCServer
 from os import get_terminal_size
 from ansi.cursor import goto
 from ansi.iterm import image
 from ansi.colour import fg, bg
 import sys
+
 
 
 def main(argv):
@@ -1284,6 +1311,7 @@ def main(argv):
     def clear_windows():
         MainWindow.clear()
         write(0, 0, "")
+
     server.register_function(clear_windows)
 
     def nevis_exit():
@@ -1300,6 +1328,8 @@ def main(argv):
         print(image(filepath), end="")
 
     server.register_function(Image, "image")
+
+    server.register_function(getch)
 
     render_count = 0
 

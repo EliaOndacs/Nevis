@@ -4,7 +4,9 @@ from os import get_terminal_size
 from ansi.cursor import goto
 from ansi.iterm import image
 from ansi.colour import fg, bg
+from src.keyboard import getch # pack: ignore
 import sys
+
 
 
 def main(argv):
@@ -45,6 +47,7 @@ def main(argv):
     def clear_windows():
         MainWindow.clear()
         write(0, 0, "")
+
     server.register_function(clear_windows)
 
     def nevis_exit():
@@ -61,6 +64,8 @@ def main(argv):
         print(image(filepath), end="")
 
     server.register_function(Image, "image")
+
+    server.register_function(getch)
 
     render_count = 0
 
